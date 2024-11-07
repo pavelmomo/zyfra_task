@@ -14,28 +14,28 @@ SESSION_FILENAME = "active-sessions.json"
 app_data: dict[str, dict[str, str]] = {}
 
 
-def init_storage():
-    if not os.path.exists(USER_FILENAME):
+def init_storage():     # проверка и считываение данных из файлов
+    if not os.path.exists(USER_FILENAME):   # проверка на существование файла с пользователями
         print("Ошибка: Не был найден файл с учетными данными пользователей")
         sys.exit(1)
-    else:
+    else:        # считывание данных из файла
         with open(USER_FILENAME, "r", encoding="utf-8") as file:
             app_data["users"] = json.load(file)
 
-    if not os.path.exists(SESSION_FILENAME):
-        write_sessions({})
+    if not os.path.exists(SESSION_FILENAME):    # проверка на существование файла с сессиями
+        write_sessions({})      # создание пустого файла с сессиями
         app_data["sessions"] = {}
-    else:
-        with open(SESSION_FILENAME, "r", encoding="utf-8") as file:
+    else:       # считывание данных из файла
+        with open(SESSION_FILENAME, "r", encoding="utf-8") as file: 
             app_data["sessions"] = json.load(file)
 
 
-def write_sessions(sessions: dict):
+def write_sessions(sessions: dict):     # запись сессий в файл
     with open(SESSION_FILENAME, "w", encoding="utf-8") as file:
         json.dump(sessions, file)
 
 
-def validate_session_expiration(session_id: str) -> bool:
+def validate_session_expiration(session_id: str) -> bool:   # проверка истечения срока сессии
     if datetime.fromisoformat(app_data["sessions"][session_id]) > datetime.now(
         timezone.utc
     ):
@@ -43,7 +43,7 @@ def validate_session_expiration(session_id: str) -> bool:
     return False
 
 
-def check_session_id(session_id: str) -> bool:
+def check_session_id(session_id: str) -> bool:  # проверка сессии
     if session_id in app_data["sessions"]:
         if validate_session_expiration(session_id):
             print("Вы вошли в систему")
@@ -54,7 +54,7 @@ def check_session_id(session_id: str) -> bool:
     return False
 
 
-def delete_session(session_id: str):
+def delete_session(session_id: str):    # удаление сессии
     if session_id in app_data["sessions"]:
         del app_data["sessions"][session_id]
         write_sessions(app_data["sessions"])
@@ -63,41 +63,41 @@ def delete_session(session_id: str):
         print("Введённая для удаления сессия не найдена")
 
 
-def authenticate(login: str, password: str) -> bool:
-    if login not in app_data["users"]:
+def authenticate(login: str, password: str) -> bool:    # аутентификация
+    if login not in app_data["users"]:      # проверка на наличие логина
         print("Указанный пользовтель не найден")
         return False
     stored_pass = app_data["users"][login]
-    if stored_pass == hashlib.sha256(password.encode()).hexdigest():
+    if stored_pass == hashlib.sha256(password.encode()).hexdigest():    # проверка хэша пароля
         print("Пользователь успешно прошел аутентификацию")
         return True
     print("Введён неверный пароль")
     return False
 
 
-def generate_and_save_session() -> str:
-    new_session_id = str(uuid.uuid4())
-    exp_time = datetime.now(timezone.utc) + timedelta(minutes=SESSION_TTL)
+def generate_and_save_session() -> str:     # генерация и сохранение данных сессии
+    new_session_id = str(uuid.uuid4())  # генерация id сессии
+    exp_time = datetime.now(timezone.utc) + timedelta(minutes=SESSION_TTL)  # вычисление даты истечения сессии
     app_data["sessions"][new_session_id] = exp_time.isoformat()
-    write_sessions(app_data["sessions"])
+    write_sessions(app_data["sessions"])    # запись изменений в файл
     return new_session_id
 
 
-def teletype():
+def teletype():     # терминальный интерфейс
     while True:
         typed_session_id = input("Введите идентификатор сессии: ")
 
         splited_input = typed_session_id.split()
         if len(splited_input) == 2 and "delete" in splited_input:
-            delete_session(splited_input[1])
+            delete_session(splited_input[1])    # удаление сессии с заданным id
             continue
-        if check_session_id(typed_session_id):
-            break  # выход после успешного ввода сессии
+        if check_session_id(typed_session_id):      # проверка сессии
+            break  # выход после успешной верификации сессии
 
-        while True:
+        while True:     # переход к аутентификации по логину и паролю
             login = input("Введите логин : ")
             password = input("Введите пароль : ")
-            if authenticate(login, password):
+            if authenticate(login, password):   # аутентификация пользователя
                 # генерация идентификатора сессии и сохранение в файл
                 new_session_id = generate_and_save_session()
                 print(f"Новый идентификатор сессии: {new_session_id}")
@@ -105,7 +105,7 @@ def teletype():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 2:      # проверка на передачу имени файла через аргументы
         USER_FILENAME = sys.argv[1]
-    init_storage()
-    teletype()
+    init_storage()      # проверка и считываение данных из файлов
+    teletype()      # запуск консольного интерфейса
