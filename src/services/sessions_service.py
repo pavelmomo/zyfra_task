@@ -1,38 +1,36 @@
 import hashlib
 import json
 import os
-import sys
+
 import uuid
 from datetime import datetime, timedelta, timezone
 
-SESSION_TTL = 5
-USER_FILENAME = "user-credits.json"
-SESSION_FILENAME = "active-sessions.json"
+from common.exceptions import AppException
+from common.settings import settings
+
 
 # данные о пользователях хранятся под ключом users, в формате логин:пароль
 # данные о сессиях хранятся под ключом sessions, в формате id сессии:дата истечения
 app_data: dict[str, dict[str, str]] = {}
 
 
-def init_storage() -> bool:     # проверка и считываение данных из файлов
-    if not os.path.exists(USER_FILENAME):   # проверка на существование файла с пользователями
-        print("Ошибка: Не был найден файл с учетными данными пользователей")
-        return False  
+def init_storage() -> None:     # проверка и считываение данных из файлов
+    if not os.path.exists(settings.USER_FILENAME):   # проверка на существование файла с пользователями
+        raise AppException("Не был найден файл с учётными данными пользователей")
 
-    with open(USER_FILENAME, "r", encoding="utf-8") as file:    # считывание данных из файла
+    with open(settings.USER_FILENAME, "r", encoding="utf-8") as file:    # считывание данных из файла
         app_data["users"] = json.load(file)
 
-    if not os.path.exists(SESSION_FILENAME):    # проверка на существование файла с сессиями
+    if not os.path.exists(settings.SESSION_FILENAME):    # проверка на существование файла с сессиями
         write_sessions({})      # создание пустого файла с сессиями
         app_data["sessions"] = {}
     else:       # считывание данных из файла
-        with open(SESSION_FILENAME, "r", encoding="utf-8") as file: 
+        with open(settings.SESSION_FILENAME, "r", encoding="utf-8") as file: 
             app_data["sessions"] = json.load(file)
-    return True
 
 
 def write_sessions(sessions: dict):     # запись сессий в файл
-    with open(SESSION_FILENAME, "w", encoding="utf-8") as file:
+    with open(settings.SESSION_FILENAME, "w", encoding="utf-8") as file:
         json.dump(sessions, file)
 
 
@@ -78,7 +76,7 @@ def authenticate(login: str, password: str) -> bool:    # аутентифика
 
 def generate_and_save_session() -> str:     # генерация и сохранение данных сессии
     new_session_id = str(uuid.uuid4())  # генерация id сессии
-    exp_time = datetime.now(timezone.utc) + timedelta(minutes=SESSION_TTL)  # вычисление даты истечения сессии
+    exp_time = datetime.now(timezone.utc) + timedelta(minutes=settings.SESSION_TTL)  # вычисление даты истечения сессии
     app_data["sessions"][new_session_id] = exp_time.isoformat()
     write_sessions(app_data["sessions"])    # запись изменений в файл
     return new_session_id
