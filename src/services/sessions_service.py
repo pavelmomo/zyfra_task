@@ -64,9 +64,10 @@ class SessionService:
             raise InvalidCredentialException()
 
 
-    def generate_and_save_session(self) -> str:                                # генерация и сохранение данных сессии
-        new_session_id = str(uuid.uuid4())                                     # генерация id сессии
-        exp_time = datetime.now(timezone.utc) + timedelta(minutes=settings.SESSION_TTL)  # вычисление даты истечения сессии
+    def generate_and_save_session(self) -> str:                                 # генерация и сохранение данных сессии
+        new_session_id = str(uuid.uuid4())                                      # генерация id сессии
+        exp_time = (datetime.now(timezone.utc) 
+                    + timedelta(minutes=settings.SESSION_TTL))                  # вычисление даты истечения сессии
         self.sessions_data[new_session_id] = exp_time.isoformat()
         self._write_sessions(self.sessions_data)                                # запись изменений в файл
         return new_session_id

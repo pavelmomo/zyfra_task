@@ -12,8 +12,11 @@ async def authenticate(login=Body(embed=True), password=Body(embed=True)):
     try:
         session_service.authenticate(login, password)
         new_session_id = session_service.generate_and_save_session()
-        return Response(f"Вы успешно авторизовались. Новый id сессии: {new_session_id}")
-    
+        return Response(
+            f"Вы успешно авторизовались. Новый id сессии: {new_session_id}",
+            media_type="text",
+        )
+
     except NotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -30,6 +33,7 @@ async def authenticate(login=Body(embed=True), password=Body(embed=True)):
 async def check_session(session_id=Body(embed=True)):
     try:
         session_service.check_session_id(session_id)
+        return Response("Вы успешно вошли в систему", media_type="text")
 
     except NotFoundException as e:
         raise HTTPException(
@@ -41,19 +45,16 @@ async def check_session(session_id=Body(embed=True)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Срок действия сессии истёк",
         ) from e
-        
-    return Response("Вы успешно вошли в систему")
 
 
 @auth_router.delete("/session", summary="Удаление сессии")
 async def delete_session(session_id=Body(embed=True)):
     try:
         session_service.delete_session(session_id)
+        return Response("Сессия успешно удалена", media_type="text")
 
     except NotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Сессия не существует",
         ) from e
-        
-    return Response("Сессия успешно удалена")
