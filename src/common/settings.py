@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     SESSION_FILENAME: str = "active-sessions.json"
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
+    ROOT_PATH: str = "/api"
 
 
 settings = Settings()
