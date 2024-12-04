@@ -4,5 +4,8 @@ __pycache__/
 # Configs
 *.json
 
+# Databases
+*.db
+
 # VSCode Configs
 .vscode/
