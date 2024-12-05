@@ -21,7 +21,7 @@ async def authenticate(login=Body(embed=True), password=Body(embed=True)):
         )
 
     except (NotFoundException, InvalidCredentialException) as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from e
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED) from e
 
 
 @auth_router.post("/session", summary="Проверка сессии на существование")
