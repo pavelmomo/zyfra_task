@@ -21,3 +21,8 @@ class InvalidCredentialException(ServiceException):
 class CredentialExpiredException(ServiceException):
     def __init__(self, message="Срок действия учётных данных истёк") -> None:
         super().__init__(message)
+
+
+class DbConnectionException(AppException):
+    def __init__(self, message="Произошла ошибка при подключении к БД") -> None:
+        super().__init__(message)

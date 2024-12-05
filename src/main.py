@@ -5,12 +5,12 @@ from fastapi import FastAPI
 
 from api.auth_router import auth_router
 from common.settings import settings
-from services.sessions_service import session_service
+from db.db_sqlite import database
 
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    session_service.init_storage()
+    await database.init_db()
     yield
 
 
